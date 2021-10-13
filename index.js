@@ -96,7 +96,7 @@ function changeLayerTextProperty(isLangField, layer, languageFieldName, excluded
   }
   return layer;
 }
-function getSources(style){
+function getV8Sources(style){
   return Object.keys(style.sources).filter((sourceName) => {
     const url = style.sources[sourceName].url;
     // the source URL can reference the source version or the style version
@@ -105,11 +105,14 @@ function getSources(style){
   });
 }
 function findStreetsSource(style) {
-  const sources = getSources(style);
+  const sources = getV8Sources(style);
   if (!sources.length) throw new Error('If using MapboxLanguage with a Mapbox style, the style must be based on vector tile version 8, e.g. "streets-v11"');
   return sources[0];
 }
-
+MapboxLanguage.prototype.isVersion8Style = (style) => {
+  const sources = getV8Sources(style);
+  return !!sources.length;
+};
 /**
  * Explicitly change the language for a style.
  * @param {object} style - Mapbox GL style to modify
@@ -140,7 +143,7 @@ MapboxLanguage.prototype._initialStyleUpdate = function () {
   const style = this._map.getStyle();
   const language = this._defaultLanguage || browserLanguage(this.supportedLanguages);
 
-  let sources = getSources(style);
+  let sources = getV8Sources(style);
   if (sources.length){
     this._map.setStyle(this.setLanguage(style, language));
   }
