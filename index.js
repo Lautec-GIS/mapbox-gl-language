@@ -96,14 +96,16 @@ function changeLayerTextProperty(isLangField, layer, languageFieldName, excluded
   }
   return layer;
 }
-
-function findStreetsSource(style) {
-  const sources = Object.keys(style.sources).filter((sourceName) => {
+function getSources(style){
+  return Object.keys(style.sources).filter((sourceName) => {
     const url = style.sources[sourceName].url;
     // the source URL can reference the source version or the style version
     // this check and the error forces users to migrate to styles using source version 8
     return url && url.indexOf('mapbox.mapbox-streets-v8') > -1 || /mapbox-streets-v[1-9][1-9]/.test(url);
   });
+}
+function findStreetsSource(style) {
+  const sources = getSources(style);
   if (!sources.length) throw new Error('If using MapboxLanguage with a Mapbox style, the style must be based on vector tile version 8, e.g. "streets-v11"');
   return sources[0];
 }
@@ -138,7 +140,10 @@ MapboxLanguage.prototype._initialStyleUpdate = function () {
   const style = this._map.getStyle();
   const language = this._defaultLanguage || browserLanguage(this.supportedLanguages);
 
-  this._map.setStyle(this.setLanguage(style, language));
+  let sources = getSources(style);
+  if (sources.length){
+    this._map.setStyle(this.setLanguage(style, language));
+  }
 };
 
 function browserLanguage(supportedLanguages) {
